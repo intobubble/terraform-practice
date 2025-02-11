@@ -26,28 +26,42 @@ resource "aws_security_group" "http_ipv4" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = join("-", [var.system_name, var.environment])
+    Name = join("-", [var.system_name, var.environment, "http_ipv4"])
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_http_ipv4" {
+resource "aws_vpc_security_group_ingress_rule" "http_ipv4_ingress" {
   security_group_id = aws_security_group.http_ipv4.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "tcp"
-  from_port         = 80
-  to_port           = 80
+  from_port         = 8080
+  to_port           = 8080
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_ssh_ipv4" {
+resource "aws_vpc_security_group_egress_rule" "http_ipv4_egress" {
   security_group_id = aws_security_group.http_ipv4.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+}
+
+resource "aws_security_group" "ssh_ipv4" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = join("-", [var.system_name, var.environment, "ssh_ipv4"])
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "ssh_ipv4_ingress" {
+  security_group_id = aws_security_group.ssh_ipv4.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "tcp"
   from_port         = 22
   to_port           = 22
 }
 
-resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
-  security_group_id = aws_security_group.http_ipv4.id
+resource "aws_vpc_security_group_egress_rule" "ssh_ipv4_egress" {
+  security_group_id = aws_security_group.ssh_ipv4.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }

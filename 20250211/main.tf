@@ -45,7 +45,8 @@ module "instance" {
       "subnet_id"     = module.network_public.subnet_ids["public-1"]
       "key_name"      = aws_key_pair.developer.key_name
       "vpc_security_group_ids" = [
-        module.network_public.vpc_securty_gorup_id_http_ipv4
+        module.network_public.vpc_sg_id_http_ipv4,
+        module.network_public.vpc_sg_id_ssh_ipv4,
       ]
     }
   ]

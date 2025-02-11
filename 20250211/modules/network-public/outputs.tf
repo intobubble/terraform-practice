@@ -6,6 +6,10 @@ output "vpc_id" {
   value = aws_vpc.main.id
 }
 
-output "vpc_securty_gorup_id_http_ipv4" {
+output "vpc_sg_id_http_ipv4" {
   value = aws_security_group.http_ipv4.id
+}
+
+output "vpc_sg_id_ssh_ipv4" {
+  value = aws_security_group.ssh_ipv4.id
 }

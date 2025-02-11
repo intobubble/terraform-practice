@@ -3,9 +3,9 @@ resource "aws_subnet" "main" {
 
   availability_zone = each.value.availability_zone
   cidr_block        = each.value.cidr_block
+  vpc_id            = aws_vpc.main.id
 
-  vpc_id = aws_vpc.main.id
-
+  depends_on = [aws_vpc.main]
   tags = {
     Name = join("-", [var.system_name, var.environment, each.value.name])
   }
@@ -25,6 +25,7 @@ resource "aws_vpc" "main" {
 resource "aws_security_group" "http_ipv4" {
   vpc_id = aws_vpc.main.id
 
+  depends_on = [aws_vpc.main]
   tags = {
     Name = join("-", [var.system_name, var.environment, "http_ipv4"])
   }
@@ -47,6 +48,7 @@ resource "aws_vpc_security_group_egress_rule" "http_ipv4_egress" {
 resource "aws_security_group" "ssh_ipv4" {
   vpc_id = aws_vpc.main.id
 
+  depends_on = [aws_vpc.main]
   tags = {
     Name = join("-", [var.system_name, var.environment, "ssh_ipv4"])
   }
@@ -70,6 +72,7 @@ resource "aws_vpc_security_group_egress_rule" "ssh_ipv4_egress" {
 resource "aws_route_table" "main" {
   vpc_id = aws_vpc.main.id
 
+  depends_on = [aws_vpc.main]
   tags = {
     Name = join("-", [var.system_name, var.environment])
   }
@@ -87,6 +90,7 @@ resource "aws_route" "route_gw" {
 }
 
 resource "aws_internet_gateway" "main" {
+  depends_on = [aws_vpc.main]
   tags = {
     Name = join("-", [var.system_name, var.environment])
   }

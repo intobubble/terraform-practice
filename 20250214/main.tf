@@ -62,8 +62,6 @@ resource "aws_s3_bucket" "main" {
   }
 }
 
-
-# https://docs.aws.amazon.com/ja_jp/IAM/latest/UserGuide/reference_policies_elements.html
 resource "aws_iam_policy" "ec2_policy" {
   depends_on = [aws_s3_bucket.main]
 
@@ -83,6 +81,7 @@ resource "aws_iam_policy" "ec2_policy" {
           "s3:ListAllMyBuckets"
         ],
         Resource = [
+          "${aws_s3_bucket.main.arn}",
           "${aws_s3_bucket.main.arn}/*"
         ]
       }
@@ -92,13 +91,13 @@ resource "aws_iam_policy" "ec2_policy" {
 
 resource "aws_iam_role" "ec2_role" {
   name = "ec2-role"
+  path = "/"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "sts:AssumeRole"
         Effect = "Allow"
-        Sid    = ""
+        Action = "sts:AssumeRole"
         Principal = {
           Service = "ec2.amazonaws.com"
         }

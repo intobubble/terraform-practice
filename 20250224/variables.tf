@@ -8,7 +8,7 @@ variable "system_name" {
   type        = string
 }
 
-variable "network_public" {
+variable "vpc" {
   type = object({
     vpc_cidr_block           = string
     subnet_availability_zone = string

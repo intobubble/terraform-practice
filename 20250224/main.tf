@@ -31,5 +31,13 @@ module "webserver" {
   ec2_vpc_security_group_ids = module.vpc.vpc_security_group_ids
 }
 
+module "alb" {
+  system_name = var.system_name
+  environment = var.environment
+  source      = "./modules/alb"
+  vpc_id      = module.vpc.vpc_id
+  subnet_ids  = [module.vpc.subnet_id]
+  instance_id = module.webserver.instance_id
+}
 
 

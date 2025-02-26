@@ -2,7 +2,7 @@
 # VPC
 #-------------------------------
 resource "aws_vpc" "main" {
-  cidr_block                           = var.vpc_cidr_block
+  cidr_block                           = var.vpc["cidr_block"]
   enable_dns_hostnames                 = false
   enable_dns_support                   = true
   enable_network_address_usage_metrics = false
@@ -15,16 +15,18 @@ resource "aws_vpc" "main" {
 #-------------------------------
 # Subnet
 #-------------------------------
-resource "aws_subnet" "main" {
+resource "aws_subnet" "this" {
+  for_each          = var.subnet
   vpc_id            = aws_vpc.main.id
-  availability_zone = var.subnet_availability_zone
-  cidr_block        = var.subnet_cidr_block
+  availability_zone = each.value["availability_zone"]
+  cidr_block        = each.value["cidr_block"]
 
   depends_on = [aws_vpc.main]
   tags = {
     Name = join("-", [var.system_name, var.environment])
   }
 }
+
 
 #-------------------------------
 # Security Gorup

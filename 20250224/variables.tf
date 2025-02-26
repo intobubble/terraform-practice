@@ -8,17 +8,9 @@ variable "system_name" {
   type        = string
 }
 
-variable "vpc" {
+variable "key_pair" {
+  description = "public key"
   type = object({
-    vpc_cidr_block           = string
-    subnet_availability_zone = string
-    subnet_cidr_block        = string
-  })
-}
-
-variable "webserver" {
-  type = object({
-    key_pair_public_key = string
-    s3_bucket_name      = string
+    public_key = string
   })
 }

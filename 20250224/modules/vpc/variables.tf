@@ -6,14 +6,21 @@ variable "environment" {
   type = string
 }
 
-variable "vpc_cidr_block" {
-  type = string
+variable "vpc" {
+  type = object({
+    cidr_block = string
+  })
 }
 
-variable "subnet_availability_zone" {
-  type = string
-}
-
-variable "subnet_cidr_block" {
-  type = string
+variable "subnet" {
+  type = object({
+    subnet_1 = object({
+      availability_zone = string
+      cidr_block        = string
+    })
+    subnet_2 = object({
+      availability_zone = string
+      cidr_block        = string
+    })
+  })
 }

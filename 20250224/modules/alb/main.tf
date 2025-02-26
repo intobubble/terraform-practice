@@ -48,7 +48,7 @@ resource "aws_vpc_security_group_egress_rule" "this_egress" {
 resource "aws_lb_target_group" "this" {
   target_type      = "instance"
   protocol_version = "HTTP1"
-  port             = 80
+  port             = 8080
   protocol         = "HTTP"
   vpc_id           = var.vpc_id
 
@@ -58,8 +58,9 @@ resource "aws_lb_target_group" "this" {
 }
 
 resource "aws_lb_target_group_attachment" "this" {
+  count            = length(var.instance_ids)
+  target_id        = var.instance_ids[count.index]
   target_group_arn = aws_lb_target_group.this.arn
-  target_id        = var.instance_id
 }
 
 #-------------------------------
@@ -71,7 +72,13 @@ resource "aws_lb_listener" "this" {
   protocol          = "HTTP"
 
   default_action {
-    type = "forward"
+    type = "redirect"
+
+    redirect {
+      port        = "8080"
+      protocol    = "HTTP"
+      status_code = "HTTP_301"
+    }
   }
 
   tags = {
@@ -84,8 +91,12 @@ resource "aws_lb_listener_rule" "this" {
   priority     = 100
 
   action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.this.arn
+    type = "redirect"
+    redirect {
+      port        = "8080"
+      protocol    = "HTTP"
+      status_code = "HTTP_301"
+    }
   }
 
   condition {

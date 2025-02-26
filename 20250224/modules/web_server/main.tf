@@ -1,3 +1,7 @@
+locals {
+  tag_name = join("-", [var.system_name, var.environment])
+}
+
 #-------------------------------
 # AMI
 #-------------------------------
@@ -21,7 +25,7 @@ data "aws_ami" "ubuntu" {
 #-------------------------------
 resource "aws_key_pair" "developer" {
   key_name   = "developer"
-  public_key = var.key_pair_public_key
+  public_key = var.key_pair["public_key"]
 }
 
 
@@ -29,17 +33,17 @@ resource "aws_key_pair" "developer" {
 # EC2
 #-------------------------------
 resource "aws_instance" "main" {
-  instance_type               = "t3-micro"
-  associate_public_ip_address = true
+  for_each                    = var.instance
+  instance_type               = each.value["instance_type"]
+  subnet_id                   = each.value["subnet_id"]
+  vpc_security_group_ids      = each.value["vpc_security_group_ids"]
+  iam_instance_profile        = aws_iam_instance_profile.instance_profile_main.name
   ami                         = data.aws_ami.ubuntu.id
   key_name                    = aws_key_pair.developer.key_name
-  subnet_id                   = var.ec2_subnet_id
-  vpc_security_group_ids      = var.ec2_vpc_security_group_ids
-  iam_instance_profile        = aws_iam_instance_profile.instance_profile_main.name
-
+  associate_public_ip_address = true
 
   tags = {
-    Name = join("-", [var.system_name, var.environment])
+    Name = local.tag_name
   }
 }
 
@@ -53,10 +57,10 @@ resource "aws_iam_instance_profile" "instance_profile_main" {
 # S3
 #-------------------------------
 resource "aws_s3_bucket" "main" {
-  bucket = var.s3_bucket_name
+  bucket = var.s3["bucket_name"]
 
   tags = {
-    Name = join("-", [var.system_name, var.environment])
+    Name = local.tag_name
   }
 }
 

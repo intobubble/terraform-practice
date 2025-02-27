@@ -111,21 +111,19 @@ module "alb" {
   system_name = var.system_name
   environment = var.environment
 
-  alb = {
-    vpc = {
-      id = module.vpc.vpc["id"]
+  vpc = {
+    id = module.vpc.vpc["id"]
+  }
+  subnet = {
+    for k, v in module.vpc.subnet : k => { id : v["id"] }
+  }
+  security_group = {
+    allow_redirect = {
+      id : module.vpc.secrity_group["allow_redirect"]["id"],
     }
-    subnet = {
-      for k, v in module.vpc.subnet : k => { id : v["id"] }
-    }
-    security_group = {
-      allow_redirect = {
-        id : module.vpc.secrity_group["allow_redirect"]["id"],
-      }
-    }
-    instance = {
-      for k, v in module.instance.instance : k => { id : v["id"] }
-    }
+  }
+  instance = {
+    for k, v in module.instance.instance : k => { id : v["id"] }
   }
 }
 

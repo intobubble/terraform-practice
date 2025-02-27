@@ -8,8 +8,8 @@ locals {
 resource "aws_lb" "main" {
   internal                   = false
   load_balancer_type         = "application"
-  security_groups            = [for sg in var.alb["security_group"] : sg["id"]]
-  subnets                    = [for s in var.alb["subnet"] : s["id"]]
+  security_groups            = [for sg in var.security_group : sg["id"]]
+  subnets                    = [for s in var.subnet : s["id"]]
   enable_deletion_protection = false
 
   tags = {
@@ -25,7 +25,7 @@ resource "aws_lb_target_group" "main" {
   protocol_version = "HTTP1"
   port             = 8080
   protocol         = "HTTP"
-  vpc_id           = var.alb["vpc"]["id"]
+  vpc_id           = var.vpc["id"]
 
   tags = {
     Name = local.tag_name
@@ -33,7 +33,7 @@ resource "aws_lb_target_group" "main" {
 }
 
 resource "aws_lb_target_group_attachment" "main" {
-  for_each         = var.alb["instance"]
+  for_each         = var.instance
   target_id        = each.value["id"]
   target_group_arn = aws_lb_target_group.main.arn
 }

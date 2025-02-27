@@ -6,30 +6,19 @@ variable "environment" {
   type = string
 }
 
-
-variable "key_pair" {
-  type = object({
-    public_key = string
-  })
+variable "instance" {
+  type = map(
+    object({
+      instance_type          = string
+      subnet_id              = string
+      vpc_security_group_ids = list(string)
+      key_name               = string
+    })
+  )
 }
 
 variable "s3" {
   type = object({
-    bucket_name = string
-  })
-}
-
-variable "instance" {
-  type = object({
-    instance_1 = object({
-      instance_type          = string
-      subnet_id              = string
-      vpc_security_group_ids = list(string)
-    })
-    instance_2 = object({
-      instance_type          = string
-      subnet_id              = string
-      vpc_security_group_ids = list(string)
-    })
+    bucket_arn = string
   })
 }

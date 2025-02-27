@@ -1,3 +1,7 @@
+locals {
+  tag_name = join("-", [var.system_name, var.environment])
+}
+
 #-------------------------------
 # VPC
 #-------------------------------
@@ -8,14 +12,14 @@ resource "aws_vpc" "main" {
   enable_network_address_usage_metrics = false
   instance_tenancy                     = "default"
   tags = {
-    Name = join("-", [var.system_name, var.environment])
+    Name = local.tag_name
   }
 }
 
 #-------------------------------
 # Subnet
 #-------------------------------
-resource "aws_subnet" "this" {
+resource "aws_subnet" "main" {
   for_each          = var.subnet
   vpc_id            = aws_vpc.main.id
   availability_zone = each.value["availability_zone"]
@@ -23,82 +27,117 @@ resource "aws_subnet" "this" {
 
   depends_on = [aws_vpc.main]
   tags = {
-    Name = join("-", [var.system_name, var.environment])
+    Name = local.tag_name
   }
 }
 
-
 #-------------------------------
-# Security Gorup
+# Security Group
+# Allow HTTP
 #-------------------------------
-resource "aws_security_group" "http_ipv4" {
+resource "aws_security_group" "allow_http" {
   vpc_id = aws_vpc.main.id
 
   depends_on = [aws_vpc.main]
   tags = {
-    Name = join("-", [var.system_name, var.environment, "http_ipv4"])
+    Name = local.tag_name
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "http_ipv4_ingress" {
-  security_group_id = aws_security_group.http_ipv4.id
+resource "aws_vpc_security_group_ingress_rule" "allow_http_ingress" {
+  security_group_id = aws_security_group.allow_http.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "tcp"
   from_port         = 8080
   to_port           = 8080
 }
 
-resource "aws_vpc_security_group_egress_rule" "http_ipv4_egress" {
-  security_group_id = aws_security_group.http_ipv4.id
+resource "aws_vpc_security_group_egress_rule" "allow_http_egress" {
+  security_group_id = aws_security_group.allow_http.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
 
-resource "aws_security_group" "https_ipv4" {
+#-------------------------------
+# Security Group
+# Allow HTTPS
+#-------------------------------
+resource "aws_security_group" "allow_https" {
   vpc_id = aws_vpc.main.id
 
   depends_on = [aws_vpc.main]
   tags = {
-    Name = join("-", [var.system_name, var.environment, "https_ipv4"])
+    Name = local.tag_name
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "https_ipv4_ingress" {
-  security_group_id = aws_security_group.https_ipv4.id
+resource "aws_vpc_security_group_ingress_rule" "allow_https_ingress" {
+  security_group_id = aws_security_group.allow_https.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "tcp"
   from_port         = 443
   to_port           = 443
 }
 
-resource "aws_vpc_security_group_egress_rule" "https_ipv4_egress" {
-  security_group_id = aws_security_group.https_ipv4.id
+resource "aws_vpc_security_group_egress_rule" "allow_https_egress" {
+  security_group_id = aws_security_group.allow_https.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
 
-resource "aws_security_group" "ssh_ipv4" {
+#-------------------------------
+# Security Group
+# Allow SSH
+#-------------------------------
+resource "aws_security_group" "allow_ssh" {
   vpc_id = aws_vpc.main.id
 
   depends_on = [aws_vpc.main]
   tags = {
-    Name = join("-", [var.system_name, var.environment, "ssh_ipv4"])
+    Name = local.tag_name
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "ssh_ipv4_ingress" {
-  security_group_id = aws_security_group.ssh_ipv4.id
+resource "aws_vpc_security_group_ingress_rule" "allow_ssh_ingress" {
+  security_group_id = aws_security_group.allow_ssh.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "tcp"
   from_port         = 22
   to_port           = 22
 }
 
-resource "aws_vpc_security_group_egress_rule" "ssh_ipv4_egress" {
-  security_group_id = aws_security_group.ssh_ipv4.id
+resource "aws_vpc_security_group_egress_rule" "allow_ssh_egress" {
+  security_group_id = aws_security_group.allow_ssh.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
+
+#-------------------------------
+# Security Group
+# from TCP 80 to TCP 8080
+#-------------------------------
+resource "aws_security_group" "allow_redirect" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = local.tag_name
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_redirect_ingress" {
+  security_group_id = aws_security_group.allow_redirect.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "tcp"
+  from_port         = 80
+  to_port           = 8080
+}
+
+resource "aws_vpc_security_group_egress_rule" "allow_redirect_egress" {
+  security_group_id = aws_security_group.allow_redirect.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+}
+
 
 #-------------------------------
 # Route Table
@@ -108,7 +147,7 @@ resource "aws_route_table" "main" {
 
   depends_on = [aws_vpc.main]
   tags = {
-    Name = join("-", [var.system_name, var.environment])
+    Name = local.tag_name
   }
 }
 
@@ -129,7 +168,7 @@ resource "aws_route" "route_gw" {
 resource "aws_internet_gateway" "main" {
   depends_on = [aws_vpc.main]
   tags = {
-    Name = join("-", [var.system_name, var.environment])
+    Name = local.tag_name
   }
 }
 

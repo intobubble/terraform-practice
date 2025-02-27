@@ -1,15 +1,16 @@
-output "subnet_ids" {
-  value = [for value in aws_subnet.this : value.id]
+output "vpc" {
+  value = aws_vpc.main
 }
 
-output "vpc_id" {
-  value = aws_vpc.main.id
+output "subnet" {
+  value = { for k, v in aws_subnet.main : k => v }
 }
 
-output "vpc_security_group_ids" {
-  value = [
-    aws_security_group.http_ipv4.id,
-    aws_security_group.https_ipv4.id,
-    aws_security_group.ssh_ipv4.id
-  ]
+output "secrity_group" {
+  value = {
+    allow_http : aws_security_group.allow_http
+    allow_https : aws_security_group.allow_https
+    allow_ssh : aws_security_group.allow_ssh
+    allow_redirect : aws_security_group.allow_redirect
+  }
 }

@@ -1,3 +1,3 @@
 output "instance" {
-  value = [for value in aws_instance.main : value]
+  value = { for k, v in aws_instance.main : k => v }
 }

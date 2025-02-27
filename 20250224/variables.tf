@@ -10,7 +10,10 @@ variable "system_name" {
 
 variable "key_pair" {
   description = "public key"
-  type = object({
-    public_key = string
-  })
+  type = map(
+    object({
+      key_name   = string
+      public_key = string
+    })
+  )
 }

@@ -13,14 +13,10 @@ variable "vpc" {
 }
 
 variable "subnet" {
-  type = object({
-    subnet_1 = object({
+  type = map(
+    object({
       availability_zone = string
       cidr_block        = string
     })
-    subnet_2 = object({
-      availability_zone = string
-      cidr_block        = string
-    })
-  })
+  )
 }

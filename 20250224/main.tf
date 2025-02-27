@@ -67,8 +67,8 @@ resource "aws_key_pair" "main" {
 #-------------------------------
 # AWS Key Pair
 #-------------------------------
-module "web_server" {
-  source      = "./modules/web_server"
+module "instance" {
+  source      = "./modules/instance"
   depends_on  = [module.vpc, aws_key_pair.main, aws_s3_bucket.main]
   system_name = var.system_name
   environment = var.environment

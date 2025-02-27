@@ -65,11 +65,12 @@ resource "aws_key_pair" "main" {
 }
 
 #-------------------------------
-# AWS Key Pair
+# EC2 Instance
 #-------------------------------
 module "instance" {
-  source      = "./modules/instance"
-  depends_on  = [module.vpc, aws_key_pair.main, aws_s3_bucket.main]
+  source     = "./modules/instance"
+  depends_on = [module.vpc, aws_key_pair.main, aws_s3_bucket.main]
+
   system_name = var.system_name
   environment = var.environment
 
@@ -100,15 +101,32 @@ module "instance" {
   }
 }
 
-# module "alb" {
-#   source     = "./modules/alb"
-#   depends_on = [module.vpc]
+#-------------------------------
+# ALB
+#-------------------------------
+module "alb" {
+  source     = "./modules/alb"
+  depends_on = [module.instance, module.vpc]
 
-#   system_name  = var.system_name
-#   environment  = var.environment
-#   vpc_id       = module.vpc.vpc_id
-#   subnet_ids   = module.vpc.subnet_ids
-#   instance_ids = [for i in module.web_server.instance : i["id"]]
-# }
+  system_name = var.system_name
+  environment = var.environment
+
+  alb = {
+    vpc = {
+      id = module.vpc.vpc["id"]
+    }
+    subnet = {
+      for k, v in module.vpc.subnet : k => { id : v["id"] }
+    }
+    security_group = {
+      allow_redirect = {
+        id : module.vpc.secrity_group["allow_redirect"]["id"],
+      }
+    }
+    instance = {
+      for k, v in module.instance.instance : k => { id : v["id"] }
+    }
+  }
+}
 
 

@@ -5,11 +5,11 @@ locals {
 #-------------------------------
 # ALB
 #-------------------------------
-resource "aws_lb" "this" {
+resource "aws_lb" "main" {
   internal                   = false
   load_balancer_type         = "application"
-  security_groups            = [aws_security_group.this.id]
-  subnets                    = var.subnet_ids
+  security_groups            = [for sg in var.alb["security_group"] : sg["id"]]
+  subnets                    = [for s in var.alb["subnet"] : s["id"]]
   enable_deletion_protection = false
 
   tags = {
@@ -18,56 +18,31 @@ resource "aws_lb" "this" {
 }
 
 #-------------------------------
-# Security Group
-#-------------------------------
-resource "aws_security_group" "this" {
-  vpc_id = var.vpc_id
-
-  tags = {
-    Name = local.tag_name
-  }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "this_ingress" {
-  security_group_id = aws_security_group.this.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "tcp"
-  from_port         = 80
-  to_port           = 8080
-}
-
-resource "aws_vpc_security_group_egress_rule" "this_egress" {
-  security_group_id = aws_security_group.this.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "-1"
-}
-
-#-------------------------------
 # ALB Target Group
 #-------------------------------
-resource "aws_lb_target_group" "this" {
+resource "aws_lb_target_group" "main" {
   target_type      = "instance"
   protocol_version = "HTTP1"
   port             = 8080
   protocol         = "HTTP"
-  vpc_id           = var.vpc_id
+  vpc_id           = var.alb["vpc"]["id"]
 
   tags = {
     Name = local.tag_name
   }
 }
 
-resource "aws_lb_target_group_attachment" "this" {
-  count            = length(var.instance_ids)
-  target_id        = var.instance_ids[count.index]
-  target_group_arn = aws_lb_target_group.this.arn
+resource "aws_lb_target_group_attachment" "main" {
+  for_each         = var.alb["instance"]
+  target_id        = each.value["id"]
+  target_group_arn = aws_lb_target_group.main.arn
 }
 
 #-------------------------------
 # ALB Listener
 #-------------------------------
-resource "aws_lb_listener" "this" {
-  load_balancer_arn = aws_lb.this.arn
+resource "aws_lb_listener" "main" {
+  load_balancer_arn = aws_lb.main.arn
   port              = "80"
   protocol          = "HTTP"
 
@@ -86,8 +61,8 @@ resource "aws_lb_listener" "this" {
   }
 }
 
-resource "aws_lb_listener_rule" "this" {
-  listener_arn = aws_lb_listener.this.arn
+resource "aws_lb_listener_rule" "main" {
+  listener_arn = aws_lb_listener.main.arn
   priority     = 100
 
   action {

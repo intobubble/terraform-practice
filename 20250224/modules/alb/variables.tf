@@ -6,14 +6,19 @@ variable "environment" {
   type = string
 }
 
-variable "vpc_id" {
-  type = string
-}
-
-variable "subnet_ids" {
-  type = list(string)
-}
-
-variable "instance_ids" {
-  type = list(string)
+variable "alb" {
+  type = object({
+    vpc = object({
+      id = string
+    })
+    subnet = map(object({
+      id = string
+    }))
+    security_group = map(object({
+      id = string
+    }))
+    instance = map(object({
+      id = string
+    }))
+  })
 }

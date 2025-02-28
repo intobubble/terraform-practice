@@ -117,11 +117,6 @@ module "alb" {
   subnet = {
     for k, v in module.vpc.subnet : k => { id : v["id"] }
   }
-  security_group = {
-    allow_redirect = {
-      id : module.vpc.secrity_group["allow_redirect"]["id"],
-    }
-  }
   instance = {
     for k, v in module.instance.instance : k => { id : v["id"] }
   }

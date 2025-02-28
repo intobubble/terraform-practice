@@ -19,12 +19,6 @@ variable "subnet" {
   }))
 }
 
-variable "security_group" {
-  type = map(object({
-    id = string
-  }))
-}
-
 variable "instance" {
   type = map(object({
     id = string

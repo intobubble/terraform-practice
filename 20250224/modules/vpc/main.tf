@@ -113,33 +113,6 @@ resource "aws_vpc_security_group_egress_rule" "allow_ssh_egress" {
 }
 
 #-------------------------------
-# Security Group
-# from TCP 80 to TCP 8080
-#-------------------------------
-resource "aws_security_group" "allow_redirect" {
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name = local.tag_name
-  }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "allow_redirect_ingress" {
-  security_group_id = aws_security_group.allow_redirect.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "tcp"
-  from_port         = 80
-  to_port           = 8080
-}
-
-resource "aws_vpc_security_group_egress_rule" "allow_redirect_egress" {
-  security_group_id = aws_security_group.allow_redirect.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "-1"
-}
-
-
-#-------------------------------
 # Route Table
 #-------------------------------
 resource "aws_route_table" "main" {

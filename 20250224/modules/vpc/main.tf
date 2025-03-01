@@ -48,8 +48,8 @@ resource "aws_vpc_security_group_ingress_rule" "allow_http_ingress" {
   security_group_id = aws_security_group.allow_http.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "tcp"
-  from_port         = 80
-  to_port           = 80
+  from_port         = 8080
+  to_port           = 8080
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_http_egress" {

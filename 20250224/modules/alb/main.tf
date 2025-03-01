@@ -63,7 +63,7 @@ resource "aws_lb_listener_rule" "main" {
 #-------------------------------
 resource "aws_lb_target_group" "main" {
   target_type      = "instance"
-  port             = 80
+  port             = 8080
   protocol_version = "HTTP1"
   protocol         = "HTTP"
   vpc_id           = var.vpc["id"]

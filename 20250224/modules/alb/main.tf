@@ -8,7 +8,7 @@ locals {
 resource "aws_lb" "main" {
   internal                   = false
   load_balancer_type         = "application"
-  security_groups            = [aws_security_group.allow_redirect.id]
+  security_groups            = [aws_security_group.allow_http.id]
   subnets                    = [for s in var.subnet : s["id"]]
   enable_deletion_protection = false
 
@@ -18,14 +18,65 @@ resource "aws_lb" "main" {
 }
 
 #-------------------------------
+# ALB Listener
+#-------------------------------
+resource "aws_lb_listener" "main" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "fixed-response"
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "404: page not found"
+      status_code  = "404"
+    }
+  }
+
+  tags = {
+    Name = local.tag_name
+  }
+}
+
+#-------------------------------
+# ALB Listener Rule
+#-------------------------------
+resource "aws_lb_listener_rule" "main" {
+  listener_arn = aws_lb_listener.main.arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.main.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/*"]
+    }
+  }
+}
+
+#-------------------------------
 # ALB Target Group
 #-------------------------------
 resource "aws_lb_target_group" "main" {
   target_type      = "instance"
+  port             = 80
   protocol_version = "HTTP1"
-  port             = 8080
   protocol         = "HTTP"
   vpc_id           = var.vpc["id"]
+
+  health_check {
+    path                = "/health"
+    protocol            = "HTTP"
+    matcher             = "200"
+    interval            = 15
+    timeout             = 3
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
 
   tags = {
     Name = local.tag_name
@@ -39,70 +90,27 @@ resource "aws_lb_target_group_attachment" "main" {
 }
 
 #-------------------------------
-# ALB Listener
-#-------------------------------
-resource "aws_lb_listener" "main" {
-  load_balancer_arn = aws_lb.main.arn
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    type = "redirect"
-
-    redirect {
-      port        = "8080"
-      protocol    = "HTTP"
-      status_code = "HTTP_301"
-    }
-  }
-
-  tags = {
-    Name = local.tag_name
-  }
-}
-
-resource "aws_lb_listener_rule" "main" {
-  listener_arn = aws_lb_listener.main.arn
-  priority     = 100
-
-  action {
-    type = "redirect"
-    redirect {
-      port        = "8080"
-      protocol    = "HTTP"
-      status_code = "HTTP_301"
-    }
-  }
-
-  condition {
-    path_pattern {
-      values = ["/*"]
-    }
-  }
-}
-
-#-------------------------------
 # Security Group
-# from TCP 80 to TCP 8080
+# from TCP
 #-------------------------------
-resource "aws_security_group" "allow_redirect" {
-  vpc_id = aws_vpc.main.id
-
+resource "aws_security_group" "allow_http" {
   tags = {
     Name = local.tag_name
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_redirect_ingress" {
-  security_group_id = aws_security_group.allow_redirect.id
+resource "aws_vpc_security_group_ingress_rule" "allow_http" {
+  security_group_id = aws_security_group.allow_http.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "tcp"
   from_port         = 80
-  to_port           = 8080
+  to_port           = 80
 }
 
-resource "aws_vpc_security_group_egress_rule" "allow_redirect_egress" {
-  security_group_id = aws_security_group.allow_redirect.id
+resource "aws_vpc_security_group_egress_rule" "allow_http" {
+  security_group_id = aws_security_group.allow_http.id
   cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 0
+  to_port           = 0
   ip_protocol       = "-1"
 }

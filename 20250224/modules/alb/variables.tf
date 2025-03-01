@@ -6,7 +6,6 @@ variable "environment" {
   type = string
 }
 
-
 variable "vpc" {
   type = object({
     id = string

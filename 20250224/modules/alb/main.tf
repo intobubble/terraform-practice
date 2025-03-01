@@ -94,6 +94,7 @@ resource "aws_lb_target_group_attachment" "main" {
 # from TCP
 #-------------------------------
 resource "aws_security_group" "allow_http" {
+  vpc_id = var.vpc["id"]
   tags = {
     Name = local.tag_name
   }
